@@ -68,11 +68,11 @@ public class StudentAgent extends Agent {
 
 			}
 		});
-		addBehaviour(new recTimetable());
 		addBehaviour(new reqTimetableAdd());
+		addBehaviour(new recTimetable());
 		addBehaviour(new timetableListener());
 		addBehaviour(new swapRequired());
-		addBehaviour(new updateSlot());
+		addBehaviour(new swapSlot());
 	}
 	//request timetable addition
 	private class reqTimetableAdd extends Behaviour {
@@ -318,7 +318,7 @@ public class StudentAgent extends Agent {
 		}
 	}
 
-	private class updateSlot extends CyclicBehaviour {
+	private class swapSlot extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
 			ACLMessage msg = myAgent.receive(mt);
@@ -332,6 +332,9 @@ public class StudentAgent extends Agent {
 							if (timetable.get(i).getModuleName().equals((newSlot.getTutorial().getModuleName()))) {
 								timetable.remove(i);
 								timetable.add(newSlot.getTutorial());
+								int swap =0;
+								swap++;
+								System.out.println("Number of swap is:"+ swap);
 							}
 						}
 					}
@@ -351,20 +354,24 @@ public class StudentAgent extends Agent {
 	private int utility(Tutorial tutorial) {
 		int scale = 2;
 		for (int i = 0; i < preferences.size(); i++) {
-				if ((preferences.get(i).getStartTime() <= tutorial.getStartTime()) && (preferences.get(i).getEndTime() >= tutorial.getEndTime()) && preferences.get(i).getDay().equals(tutorial.getDay())) {
-					switch (preferences.get(i).getAvailability()) {
-						case "Unavailable":
-							scale = 0;
-							break;
-						case "Not Ideal":
-							scale = 1;
-							break;
-						case "Fine":
-							scale = 2;
-							break;
-						case "Ideal":
-							scale = 3;
-							break;
+				if ((preferences.get(i).getStartTime() <= tutorial.getStartTime())){
+					if((preferences.get(i).getEndTime() >= tutorial.getEndTime())) {
+						if(preferences.get(i).getDay().equals(tutorial.getDay())) {
+							switch (preferences.get(i).getAvailability()) {
+								case "Unavailable":
+									scale = 0;
+									break;
+								case "Not Ideal":
+									scale = 1;
+									break;
+								case "Fine":
+									scale = 2;
+									break;
+								case "Ideal":
+									scale = 3;
+									break;
+							}
+						}
 					}
 				}
 			}

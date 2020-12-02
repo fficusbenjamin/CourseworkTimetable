@@ -20,6 +20,10 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import time_ontology.*;
 
+
+//REFACTOR CLASS AND VARIABLE NAMES, MAKE SURE ALL THE PRINTED STRINGS ARE CHANGED EVERYWHERE
+
+
 public class TimetableAgent extends Agent{
 	private Codec codec = new SLCodec();
 	private Ontology ontology = TimeOntology.getInstance();
@@ -162,6 +166,7 @@ public class TimetableAgent extends Agent{
 		System.out.println("Timetabler agent terminating.");
 	}
 
+	//CHANGE ORDER
 	private void handleSwaps() {
 		for(int i = 0; i < proposals.size(); i++) {
 			for(int j = 0; j < proposals.size(); j++) {
