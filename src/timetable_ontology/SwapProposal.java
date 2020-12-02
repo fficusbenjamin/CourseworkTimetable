@@ -1,9 +1,10 @@
-package ontology;
+package timetable_ontology;
 
 import jade.content.Predicate;
 import jade.core.AID;
 
-public class PropPredicate implements Predicate {
+public class SwapProposal implements Predicate {
+
 	private AID owner;
 	private AID proposee;
 	private Tutorial slot;
@@ -27,5 +28,5 @@ public class PropPredicate implements Predicate {
 	}
 	
 	
-
+	
 }

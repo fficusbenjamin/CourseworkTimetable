@@ -5,7 +5,6 @@ import jade.wrapper.ContainerController;
 
 
 public class App {
-
 	public static void main(String[] args) {
 		///Types of agent "Unable", "Prefer Not", "Neutral", "Would Like"
 		Profile myProfile = new ProfileImpl();
@@ -30,17 +29,11 @@ public class App {
 			
 			AgentController StudentB = myContainer.createNewAgent("StudentB", StudentAgent.class.getCanonicalName(), preferencesB);
 			StudentB.start();
-			
-			
-			AgentController AdvertiserAgent = myContainer.createNewAgent("AdvertiserAgent", AdvertAgent.class.getCanonicalName(), null);
-			AdvertiserAgent.start();
-			
+
 		}
 		catch(Exception e){
 			System.out.println("Exception starting agent: " + e.toString());
 		}
-
-
 	}
 
 }

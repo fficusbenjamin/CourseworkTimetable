@@ -1,14 +1,10 @@
-package ontology;
-
-
+package timetable_ontology;
 
 import jade.content.Predicate;
 import jade.core.AID;
 
-public class StudPredicate implements Predicate {
-	/**
-	 * 
-	 */
+public class Timeslot implements Predicate {
+
 	private static final long serialVersionUID = 1L;
 	private AID owner;
 	private Tutorial tutorial;

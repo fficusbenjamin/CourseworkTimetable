@@ -8,8 +8,11 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.lang.acl.UnreadableException;
-import ontology.*;
+import timetable_ontology.AvailableSlots;
+import timetable_ontology.SwapProposal;
+import timetable_ontology.Timeslot;
+import timetable_ontology.TimetableOntology;
+import timetable_ontology.Tutorial;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +87,7 @@ public class StudentAgent extends Agent {
 			} catch (FIPAException fe) {
 				fe.printStackTrace();
 			}
-			cfp.setContent("request");
+			cfp.setContent("add me to list");
 			cfp.setConversationId("timetable-system");
 			cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 			myAgent.send(cfp);
@@ -114,8 +117,8 @@ public class StudentAgent extends Agent {
 				try {
 					ContentElement ce = null;
 					ce = getContentManager().extractContent(msg);
-					if (ce instanceof StudPredicate) {
-						StudPredicate owns = (StudPredicate) ce;
+					if (ce instanceof Timeslot) {
+						Timeslot owns = (Timeslot) ce;
 						Tutorial tut = owns.getTutorial();
 						AID owner = owns.getOwner();
 						System.out.println("Tutorial: " + tut.getDay() + "\n Owner:" + owner);
@@ -153,7 +156,7 @@ public class StudentAgent extends Agent {
 							System.out.println("Util < 0");
 
 							ACLMessage swapmsg = new ACLMessage(ACLMessage.CFP);
-							desc.setType("AdvertiserAgent");
+							desc.setType("TimetableAgent");
 							template.addServices(desc);
 							try {
 								DFAgentDescription[] result = DFService.search(myAgent, template);
@@ -217,7 +220,7 @@ public class StudentAgent extends Agent {
 						DFAgentDescription template = new DFAgentDescription();
 						ServiceDescription desc = new ServiceDescription();
 						ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
-						desc.setType("AdvertiserAgent");
+						desc.setType("TimetableAgent");
 						template.addServices(desc);
 						try {
 							DFAgentDescription[] result = DFService.search(myAgent, template);
@@ -246,22 +249,40 @@ public class StudentAgent extends Agent {
 				ContentElement ce = null;
 				try {
 					ce = getContentManager().extractContent(msg);
-					if (ce instanceof AdvertPredicate) {
-						AdvertPredicate advert = (AdvertPredicate) ce;
-						int desiredSlot = maximum(advert.getAdvertBoard());
+					if (ce instanceof AvailableSlots) {
+						AvailableSlots advert = (AvailableSlots) ce;
+
+						int desiredSlot = -1;
+						for(int i=0; i < advert.getSlots().size(); i++) {
+
+							for(int j = 0; j < timetable.size(); j++) {
+
+								if(advert.getSlots().get(i).getModuleName().equals(timetable.get(j).getModuleName())) {
+									//System.out.println("slots are similar");
+
+									int advertUtil = utility(advert.getSlots().get(i));
+									int currentUtil = utility(timetable.get(j));
+
+									if(advertUtil > currentUtil) {
+										desiredSlot = i;
+									}
+								}
+							}
+						}
+
 						System.out.println("Index of desired slot " + desiredSlot);
 						
 						if(desiredSlot != -1) {
-							PropPredicate proposal = new PropPredicate();
-							proposal.setOwner(advert.getAdvertBoard().getOwners().get(desiredSlot));
-							proposal.setSlot(advert.getAdvertBoard().getSlots().get(desiredSlot));
+							SwapProposal proposal = new SwapProposal();
+							proposal.setOwner(advert.getSlots().get(desiredSlot).getStudentOwner());
+							proposal.setSlot(advert.getSlots().get(desiredSlot));
 							proposal.setProposee(myAgent.getAID());
 							
 							ACLMessage advertSwap = new ACLMessage(ACLMessage.PROPOSE);
 							DFAgentDescription template = new DFAgentDescription();
 							ServiceDescription desc = new ServiceDescription();
 							
-							desc.setType("AdvertiserAgent");
+							desc.setType("TimetableAgent");
 							template.addServices(desc);
 							try {
 								DFAgentDescription[] result = DFService.search(myAgent, template);
@@ -294,33 +315,11 @@ public class StudentAgent extends Agent {
 			}
 		}
 	}
-	
-	private int maximum(AdvertBoard adverts) {
-		int maximum = -1;
-		for(int i=0; i < adverts.getSlots().size(); i++) {
-			
-			for(int j = 0; j < timetable.size(); j++) {
-				
-				if(adverts.getSlots().get(i).getName().equals(timetable.get(j).getName())) {
-					//System.out.println("slots are similar");
-					
-					int advertUtil = utility(adverts.getSlots().get(i));
-					int currentUtil = utility(timetable.get(j));
-					
-					if(advertUtil > currentUtil) {
-						maximum = i;
-					}
-				}
-				
-			}
-		}
-		return maximum;
-	}
-	private int utility(Tutorial tutty) {
+
+	private int utility(Tutorial tutorial) {
 		int score = 0;
 		for (int i = 0; i < preferences.size(); i++) {
-			if (preferences.get(i).getDay().equals(tutty.getDay())){
-				if ((preferences.get(i).getStartTime() <= tutty.getStartTime()) && (preferences.get(i).getEndTime() >= tutty.getEndTime())) {
+				if ((preferences.get(i).getStartTime() <= tutorial.getStartTime()) && (preferences.get(i).getEndTime() >= tutorial.getEndTime()) && preferences.get(i).getDay().equals(tutorial.getDay())) {
 					switch (preferences.get(i).getType()) {
 					case "Unable":
 						score = -10;
@@ -328,16 +327,12 @@ public class StudentAgent extends Agent {
 					case "Prefer Not":
 						score = -5;
 						break;
-					case "Neutral":
-						score = 0;
-						break;
 					case "Would Like":
 						score = 10;
 						break;
 					}
 				}
 			}
-		}
 		happiness = happiness + score;
 		return score;
 
