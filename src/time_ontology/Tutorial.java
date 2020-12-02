@@ -3,8 +3,18 @@ package time_ontology;
 import jade.content.Concept;
 import jade.core.AID;
 
-public class Tutorial implements Concept {
+///------------------------------------------------------------------------
+///   Class:		Tutorial (Class)
+///   Description:	Tutorial class that states all its properties
+///
+///
+///
+///
+///   Author:		Francesco Fico (40404272)     Date: 02/12/2020
+///------------------------------------------------------------------------
 
+public class Tutorial implements Concept {
+	//initialised variables
 	AID studentOwner;
 	String moduleName;
 	String moduleID;
@@ -13,11 +23,7 @@ public class Tutorial implements Concept {
 	String day;
 	int startTime;
 	int endTime;
-
-	public Tutorial() {
-
-	}
-
+	//variables getters and setters
 	public AID getStudentOwner() {
 		return studentOwner;
 	}
@@ -80,5 +86,9 @@ public class Tutorial implements Concept {
 
 	public void setEndTime(int endTime) {
 		this.endTime = endTime;
+	}
+
+	//constructor
+	public Tutorial() {
 	}
 }
