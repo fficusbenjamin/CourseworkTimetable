@@ -251,25 +251,25 @@ public class StudentAgent extends Agent {
 					ce = getContentManager().extractContent(msg);
 					if (ce instanceof Board) {
 						Board advert = (Board) ce;
-
+						//System.out.println(advert.getBoard().size());
 						int availSlot = -1;
 						for(int i = 0; i < advert.getBoard().size(); i++) {
 
 							for(int j = 0; j < timetable.size(); j++) {
 
 								if(advert.getBoard().get(i).getModuleName().equals(timetable.get(j).getModuleName())) {
-
+								//System.out.println("equal");
 									int swapAvail = utility(advert.getBoard().get(i));
 									int currentAvail = utility(timetable.get(j));
-
+									System.out.println(swapAvail + " " + currentAvail + " " + myAgent.getName());
 									if(swapAvail > currentAvail) {
 										availSlot = i;
 									}
 								}
 							}
 						}
-
 						if(availSlot != -1) {
+							System.out.println("not equal -1");
 							PropPredicate prop = new PropPredicate();
 							prop.setSlotOwner(advert.getBoard().get(availSlot).getStudentOwner());
 							prop.setSlot(advert.getBoard().get(availSlot));
@@ -314,7 +314,7 @@ public class StudentAgent extends Agent {
 	}
 
 	private int utility(Tutorial tutorial) {
-		int scale = 0;
+		int scale = 2;
 		for (int i = 0; i < preferences.size(); i++) {
 				if ((preferences.get(i).getStartTime() <= tutorial.getStartTime()) && (preferences.get(i).getEndTime() >= tutorial.getEndTime()) && preferences.get(i).getDay().equals(tutorial.getDay())) {
 					switch (preferences.get(i).getAvailability()) {

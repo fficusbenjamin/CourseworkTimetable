@@ -179,6 +179,7 @@ public class TimetableAgent extends Agent{
 			// TODO Auto-generated method stub
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
 			ACLMessage msg = myAgent.receive(mt);
+			//System.out.println("msg not null");
 
 			if(msg != null) {
 				try {
@@ -187,7 +188,7 @@ public class TimetableAgent extends Agent{
 					if(ce instanceof PropPredicate) {
 						PropPredicate owns = (PropPredicate) ce;
 						proposals.add(owns);
-						System.out.println("Recieved: "+ owns.getSlot().getModuleName());
+						System.out.println("Received: "+ owns.getSlot().getModuleName());
 						System.out.println("From: "+ owns.getSlotOwner().getName());
 						System.out.println(" ");
 					}
@@ -222,6 +223,7 @@ public class TimetableAgent extends Agent{
 						getContentManager().fillContent(reply, advpredicate);
 						//getContentManager().fillContent(reply, (ContentElement) advertBoard);
 						send(reply);
+						//System.out.println(msg.getSender());
 					} catch (CodecException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
