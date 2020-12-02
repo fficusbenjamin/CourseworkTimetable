@@ -33,7 +33,8 @@ public class StudentAgent extends Agent {
 	
 	List<Pref> preferences = new ArrayList<Pref>();
 
-	private int availability = 0;
+	private int availability = 2;
+	//private int scale;
 
 
 	public int getAvailability() {
@@ -71,6 +72,7 @@ public class StudentAgent extends Agent {
 		addBehaviour(new reqTimetableAdd());
 		addBehaviour(new timetableListener());
 		addBehaviour(new swapRequired());
+		addBehaviour(new updateSlot());
 	}
 	//request timetable addition
 	private class reqTimetableAdd extends Behaviour {
@@ -149,11 +151,12 @@ public class StudentAgent extends Agent {
 							fe.printStackTrace();
 						}
 
-						int availability = utility(tut);
+						int utility = utility(tut);
+						availability = availability + utility;
 						System.out.println("Availability is: " + availability);
 
 						// Test with advertising neutral
-						if (availability <= 2) {
+						if (utility <= 2) {
 							System.out.println("Availability <= 2");
 
 							ACLMessage swapMsg = new ACLMessage(ACLMessage.CFP);
@@ -211,6 +214,8 @@ public class StudentAgent extends Agent {
 					
 					for(int i = 0; i < timetable.size(); i++) {
 						int utility = utility(timetable.get(i));
+						availability = 2;
+						availability = availability + utility;
 						if(utility < 3) {
 							reqSwap = true;
 						}
@@ -313,6 +318,36 @@ public class StudentAgent extends Agent {
 		}
 	}
 
+	private class updateSlot extends CyclicBehaviour {
+		public void action() {
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) {
+				ContentElement ce = null;
+				try {
+					ce = getContentManager().extractContent(msg);
+					if (ce instanceof Slot) {
+						Slot newSlot = (Slot) ce;
+						for (int i = 0; i < timetable.size(); i++) {
+							if (timetable.get(i).getModuleName().equals((newSlot.getTutorial().getModuleName()))) {
+								timetable.remove(i);
+								timetable.add(newSlot.getTutorial());
+							}
+						}
+					}
+				} catch (CodecException | OntologyException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+		}
+
+	}
+
+
+
+
 	private int utility(Tutorial tutorial) {
 		int scale = 2;
 		for (int i = 0; i < preferences.size(); i++) {
@@ -333,7 +368,7 @@ public class StudentAgent extends Agent {
 					}
 				}
 			}
-		availability = availability + scale;
+
 		return scale;
 
 	}

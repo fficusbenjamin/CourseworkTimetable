@@ -166,7 +166,25 @@ public class TimetableAgent extends Agent{
 		for(int i = 0; i < proposals.size(); i++) {
 			for(int j = 0; j < proposals.size(); j++) {
 				if(proposals.get(i).getSlotOwner().equals(proposals.get(j).getSlotRecipient())) {
+					ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+					msg.addReceiver(proposals.get(i).getSlotRecipient());
+					msg.setLanguage(codec.getName());
+					msg.setOntology(ontology.getName());
+					// Prepare the content.
 
+					Slot owns = new Slot();
+					owns.setSlotOwner(proposals.get(i).getSlotOwner());
+					owns.setTutorial(proposals.get(i).getSlot());
+					try {
+						// Let JADE convert from Java objects to string
+						getContentManager().fillContent(msg, owns);
+						System.out.println("sent");
+						send(msg);
+					} catch (CodecException ce) {
+						ce.printStackTrace();
+					} catch (OntologyException oe) {
+						oe.printStackTrace();
+					}
 
 				}
 			}
