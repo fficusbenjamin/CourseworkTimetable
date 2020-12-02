@@ -20,33 +20,33 @@ import jade.wrapper.ContainerController;
 
 public class App {
 	public static void main(String[] args) {
-		//Types of agent "Unavailable", "Not Ideal", "Fine", "Ideal"
+
 		// creates the profile, runtime and container
 		Profile myProfile = new ProfileImpl();
 		Runtime myRuntime = Runtime.instance();
 		ContainerController myContainer = myRuntime.createMainContainer(myProfile);	
 		try{
-			//initialise the agent controller
+			//creates, initialise and starts the container
 			AgentController rma = myContainer.createNewAgent("rma", "jade.tools.rma.rma", null);
 			rma.start();
-			
+			//creates a new list of preferences assign them to prefA
 			Pref prefA = new Pref("Unavailable", "Tuesday", 1200, 1700);
 			Pref[] preferencesA = {prefA};
-			
+			//creates a new list of preferences assign them to prefB
 			Pref prefB = new Pref("Unavailable", "Friday", 1100, 1700);
 			Pref[] preferencesB = {prefB};
-			
-			AgentController TimetableAgent = myContainer.createNewAgent("Timetabler", TimetableAgent.class.getCanonicalName(), null);
+			//creates, initialise and starts the timetable agent
+			AgentController TimetableAgent = myContainer.createNewAgent("Timetable", TimetableAgent.class.getCanonicalName(), null);
 			TimetableAgent.start();
-			
+			//creates, initialise and starts the first student agent and it assign prefA to it
 			AgentController StudentA = myContainer.createNewAgent("StudentA", StudentAgent.class.getCanonicalName(), preferencesA);
 			StudentA.start();
-			
+			//creates, initialise and starts the first student agent and it assign prefB to it
 			AgentController StudentB = myContainer.createNewAgent("StudentB", StudentAgent.class.getCanonicalName(), preferencesB);
 			StudentB.start();
 		}
 		catch(Exception e){
-			System.out.println("impossible to initialise agents " + e.toString());
+			System.out.println("Impossible to initialise agents " + e.toString());
 		}
 	}
 }
