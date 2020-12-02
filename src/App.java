@@ -6,7 +6,7 @@ import jade.wrapper.ContainerController;
 
 public class App {
 	public static void main(String[] args) {
-		///Types of agent "Unable", "Prefer Not", "Neutral", "Would Like"
+		///Types of agent "Unavailable", "Not Ideal", "Fine", "Ideal"
 		Profile myProfile = new ProfileImpl();
 		Runtime myRuntime = Runtime.instance();
 		ContainerController myContainer = myRuntime.createMainContainer(myProfile);	
@@ -15,10 +15,10 @@ public class App {
 			rma.start();
 			
 			//Tutorial tut = new Tutorial("SEM", "Tuesday", 1300, 1400);
-			Pref prefA = new Pref("Unable", "Tuesday", 1200, 1700);
+			Pref prefA = new Pref("Unavailable", "Tuesday", 1200, 1700);
 			Pref[] preferencesA = {prefA};
 			
-			Pref prefB = new Pref("Unable", "Friday", 1100, 1700);
+			Pref prefB = new Pref("Unavailable", "Friday", 1100, 1700);
 			Pref[] preferencesB = {prefB};
 			
 			AgentController TimetableAgent = myContainer.createNewAgent("Timetabler", TimetableAgent.class.getCanonicalName(), null);

@@ -1,19 +1,15 @@
-package timetable_ontology;
+package time_ontology;
 
 import jade.content.Concept;
-import jade.content.Predicate;
-import jade.content.onto.annotations.Slot;
 import jade.core.AID;
 
 public class Tutorial implements Concept {
-	/**
-	 * 
-	 */
+
 	AID studentOwner;
 	String moduleName;
-	String moduleNo;
-	String campus;
-	String lecturer;
+	String moduleID;
+	String type;
+	String room;
 	String day;
 	int startTime;
 	int endTime;
@@ -38,28 +34,28 @@ public class Tutorial implements Concept {
 		this.moduleName = moduleName;
 	}
 
-	public String getModuleNo() {
-		return moduleNo;
+	public String getModuleID() {
+		return moduleID;
 	}
 
-	public void setModuleNo(String moduleNo) {
-		this.moduleNo = moduleNo;
+	public void setModuleID(String moduleID) {
+		this.moduleID = moduleID;
 	}
 
-	public String getCampus() {
-		return campus;
+	public String getType() {
+		return type;
 	}
 
-	public void setCampus(String campus) {
-		this.campus = campus;
+	public void setType(String type) {
+		this.type = type;
 	}
 
-	public String getLecturer() {
-		return lecturer;
+	public String getRoom() {
+		return room;
 	}
 
-	public void setLecturer(String lecturer) {
-		this.lecturer = lecturer;
+	public void setRoom(String room) {
+		this.room = room;
 	}
 
 	public String getDay() {

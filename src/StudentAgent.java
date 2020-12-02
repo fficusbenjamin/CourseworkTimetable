@@ -8,11 +8,11 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import timetable_ontology.AvailableSlots;
-import timetable_ontology.SwapProposal;
-import timetable_ontology.Timeslot;
-import timetable_ontology.TimetableOntology;
-import timetable_ontology.Tutorial;
+import time_ontology.Board;
+import time_ontology.PropPredicate;
+import time_ontology.Slot;
+import time_ontology.TimeOntology;
+import time_ontology.Tutorial;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,16 +27,17 @@ import jade.core.AID;
 
 public class StudentAgent extends Agent {
 	private Codec codec = new SLCodec();
-	private Ontology ontology = TimetableOntology.getInstance();
+	private Ontology timeOntology = TimeOntology.getInstance();
 
 	List<Tutorial> timetable = new ArrayList<Tutorial>();
 	
 	List<Pref> preferences = new ArrayList<Pref>();
 
-	private int happiness = 0;
+	private int availability = 0;
 
-	public int getHappiness() {
-		return happiness;
+
+	public int getAvailability() {
+		return availability;
 	}
 	
 	protected void setup() {
@@ -47,7 +48,7 @@ public class StudentAgent extends Agent {
 			preferences.add(preference);
 		}
 		getContentManager().registerLanguage(codec);
-		getContentManager().registerOntology(ontology);
+		getContentManager().registerOntology(timeOntology);
 		// System.out.println("Hello! Buyer-agent " + getAID().getName() + " is
 		// ready.");
 		DFAgentDescription dfd = new DFAgentDescription();
@@ -66,13 +67,13 @@ public class StudentAgent extends Agent {
 
 			}
 		});
-		addBehaviour(new recieveTimetable());
-		addBehaviour(new requestPerformer());
-		addBehaviour(new handleInform());
-		addBehaviour(new handleAdvertConfirm());
+		addBehaviour(new recTimetable());
+		addBehaviour(new reqTimetableAdd());
+		addBehaviour(new timetableListener());
+		addBehaviour(new swapRequired());
 	}
-
-	private class requestPerformer extends Behaviour {
+	//request timetable addition
+	private class reqTimetableAdd extends Behaviour {
 		public void action() {
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription desc = new ServiceDescription();
@@ -87,7 +88,7 @@ public class StudentAgent extends Agent {
 			} catch (FIPAException fe) {
 				fe.printStackTrace();
 			}
-			cfp.setContent("add me to list");
+			cfp.setContent("addition request");
 			cfp.setConversationId("timetable-system");
 			cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 			myAgent.send(cfp);
@@ -106,10 +107,9 @@ public class StudentAgent extends Agent {
 		} catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
-		//System.out.println(getAID().getName() + "happiness: " + happiness);
 	}
-
-	private class recieveTimetable extends CyclicBehaviour {
+	//receive timetable
+	private class recTimetable extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
 			ACLMessage msg = myAgent.receive(mt);
@@ -117,63 +117,63 @@ public class StudentAgent extends Agent {
 				try {
 					ContentElement ce = null;
 					ce = getContentManager().extractContent(msg);
-					if (ce instanceof Timeslot) {
-						Timeslot owns = (Timeslot) ce;
-						Tutorial tut = owns.getTutorial();
-						AID owner = owns.getOwner();
-						System.out.println("Tutorial: " + tut.getDay() + "\n Owner:" + owner);
+					if (ce instanceof Slot) {
+						Slot slot = (Slot) ce;
+						Tutorial tut = slot.getTutorial();
+						AID slotOwner = slot.getSlotOwner();
+						System.out.println("Tutorial: " + tut.getDay() + tut.getModuleID() + tut.getModuleName() + "\n Student:" + slotOwner);
 						timetable.add(tut);
 
 						DFAgentDescription template = new DFAgentDescription();
 						ServiceDescription desc = new ServiceDescription();
 
-						ACLMessage confirmation = new ACLMessage(ACLMessage.CONFIRM);
+						//confirmation timetable received
+						ACLMessage conformMsg = new ACLMessage(ACLMessage.CONFIRM);
+
 						desc.setType("TimetableAgent");
 						template.addServices(desc);
 						try {
 							DFAgentDescription[] result = DFService.search(myAgent, template);
-							// System.out.println("Search?");§§
 							if (result.length > 0) {
-								confirmation.addReceiver(result[0].getName());
+								conformMsg.addReceiver(result[0].getName());
 								System.out.println("result " + result[0].getName());
 
-								confirmation.setConversationId("timetable-system");
+								conformMsg.setConversationId("timetable-system");
 
 								// Let JADE convert from Java objects to string
 								System.out.println("confirmation message sent");
-								confirmation.setContent("confirm");
-								myAgent.send(confirmation);
+								conformMsg.setContent("confirm");
+								myAgent.send(conformMsg);
 							}
 						} catch (FIPAException fe) {
 							fe.printStackTrace();
 						}
 
-						int util = utility(tut);
-						System.out.println("Utility is: " + util);
+						int availability = utility(tut);
+						System.out.println("Availability is: " + availability);
 
 						// Test with advertising neutral
-						if (util <= 0) {
-							System.out.println("Util < 0");
+						if (availability <= 2) {
+							System.out.println("Availability <= 2");
 
-							ACLMessage swapmsg = new ACLMessage(ACLMessage.CFP);
+							ACLMessage swapMsg = new ACLMessage(ACLMessage.CFP);
 							desc.setType("TimetableAgent");
 							template.addServices(desc);
 							try {
-								DFAgentDescription[] result = DFService.search(myAgent, template);
-								// System.out.println("Search?");
-								if (result.length > 0) {
-									swapmsg.addReceiver(result[0].getName());
-									System.out.println("result " + result[0].getName());
+								DFAgentDescription[] dfdAvail = DFService.search(myAgent, template);
+								if (dfdAvail.length > 0) {
+									swapMsg.addReceiver(dfdAvail[0].getName());
+									System.out.println("Availability " + dfdAvail[0].getName());
 
-									swapmsg.setLanguage(codec.getName());
-									swapmsg.setOntology(ontology.getName());
-									swapmsg.setConversationId("timetable-system");
+									swapMsg.setLanguage(codec.getName());
+									swapMsg.setOntology(timeOntology.getName());
+									swapMsg.setConversationId("timetable-system");
 
 									try {
 										// Let JADE convert from Java objects to string
-										System.out.println("Advertiser agent message sent");
-										getContentManager().fillContent(swapmsg, owns);
-										send(swapmsg);
+										System.out.println("Message sent to timetable agent");
+										getContentManager().fillContent(swapMsg, slot);
+										send(swapMsg);
 									} catch (CodecException ce2) {
 										ce2.printStackTrace();
 									} catch (OntologyException oe) {
@@ -196,8 +196,8 @@ public class StudentAgent extends Agent {
 			}
 		}
 	}
-
-	private class handleInform extends CyclicBehaviour {
+	//method that handles messages
+	private class timetableListener extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
 			ACLMessage msg = myAgent.receive(mt);
@@ -207,25 +207,25 @@ public class StudentAgent extends Agent {
 					myAgent.doDelete();
 				} else if (msg.getContent().equals("tickInform")) {
 					//System.out.println("new student tick");
-					boolean advertNeeded = false;
+					boolean reqSwap = false;
 					
 					for(int i = 0; i < timetable.size(); i++) {
-						int util = utility(timetable.get(i));
-						if(util < 0) {
-							advertNeeded = true;
+						int utility = utility(timetable.get(i));
+						if(utility < 3) {
+							reqSwap = true;
 						}
 					}
 					
-					if(advertNeeded == true) {
+					if(reqSwap == true) {
 						DFAgentDescription template = new DFAgentDescription();
 						ServiceDescription desc = new ServiceDescription();
 						ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
 						desc.setType("TimetableAgent");
 						template.addServices(desc);
 						try {
-							DFAgentDescription[] result = DFService.search(myAgent, template);
-							if (result.length > 0) {
-								cfp.addReceiver(result[0].getName());
+							DFAgentDescription[] availRecip = DFService.search(myAgent, template);
+							if (availRecip.length > 0) {
+								cfp.addReceiver(availRecip[0].getName());
 							}
 						} catch (FIPAException fe) {
 							fe.printStackTrace();
@@ -240,7 +240,7 @@ public class StudentAgent extends Agent {
 		}
 	}
 
-	private class handleAdvertConfirm extends CyclicBehaviour
+	private class swapRequired extends CyclicBehaviour
 	{
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.AGREE);
@@ -249,34 +249,31 @@ public class StudentAgent extends Agent {
 				ContentElement ce = null;
 				try {
 					ce = getContentManager().extractContent(msg);
-					if (ce instanceof AvailableSlots) {
-						AvailableSlots advert = (AvailableSlots) ce;
+					if (ce instanceof Board) {
+						Board advert = (Board) ce;
 
-						int desiredSlot = -1;
-						for(int i=0; i < advert.getSlots().size(); i++) {
+						int availSlot = -1;
+						for(int i = 0; i < advert.getBoard().size(); i++) {
 
 							for(int j = 0; j < timetable.size(); j++) {
 
-								if(advert.getSlots().get(i).getModuleName().equals(timetable.get(j).getModuleName())) {
-									//System.out.println("slots are similar");
+								if(advert.getBoard().get(i).getModuleName().equals(timetable.get(j).getModuleName())) {
 
-									int advertUtil = utility(advert.getSlots().get(i));
-									int currentUtil = utility(timetable.get(j));
+									int swapAvail = utility(advert.getBoard().get(i));
+									int currentAvail = utility(timetable.get(j));
 
-									if(advertUtil > currentUtil) {
-										desiredSlot = i;
+									if(swapAvail > currentAvail) {
+										availSlot = i;
 									}
 								}
 							}
 						}
 
-						System.out.println("Index of desired slot " + desiredSlot);
-						
-						if(desiredSlot != -1) {
-							SwapProposal proposal = new SwapProposal();
-							proposal.setOwner(advert.getSlots().get(desiredSlot).getStudentOwner());
-							proposal.setSlot(advert.getSlots().get(desiredSlot));
-							proposal.setProposee(myAgent.getAID());
+						if(availSlot != -1) {
+							PropPredicate prop = new PropPredicate();
+							prop.setSlotOwner(advert.getBoard().get(availSlot).getStudentOwner());
+							prop.setSlot(advert.getBoard().get(availSlot));
+							prop.setSlotRecipient(myAgent.getAID());
 							
 							ACLMessage advertSwap = new ACLMessage(ACLMessage.PROPOSE);
 							DFAgentDescription template = new DFAgentDescription();
@@ -285,20 +282,20 @@ public class StudentAgent extends Agent {
 							desc.setType("TimetableAgent");
 							template.addServices(desc);
 							try {
-								DFAgentDescription[] result = DFService.search(myAgent, template);
-								if (result.length > 0) {
-									advertSwap.addReceiver(result[0].getName());
+								DFAgentDescription[] availSlotOwner = DFService.search(myAgent, template);
+								if (availSlotOwner.length > 0) {
+									advertSwap.addReceiver(availSlotOwner[0].getName());
 								}
 							} catch (FIPAException fe) {
 								fe.printStackTrace();
 							}
 							advertSwap.setLanguage(codec.getName());
-							advertSwap.setOntology(ontology.getName());
+							advertSwap.setOntology(timeOntology.getName());
 							
 							try {
 								// Let JADE convert from Java objects to string
-								System.out.println("Advertiser agent message sent");
-								getContentManager().fillContent(advertSwap, proposal);
+								System.out.println("Swap requested");
+								getContentManager().fillContent(advertSwap, prop);
 								send(advertSwap);
 								System.out.print("Swap sent");
 							} catch (CodecException ce2) {
@@ -317,24 +314,27 @@ public class StudentAgent extends Agent {
 	}
 
 	private int utility(Tutorial tutorial) {
-		int score = 0;
+		int scale = 0;
 		for (int i = 0; i < preferences.size(); i++) {
 				if ((preferences.get(i).getStartTime() <= tutorial.getStartTime()) && (preferences.get(i).getEndTime() >= tutorial.getEndTime()) && preferences.get(i).getDay().equals(tutorial.getDay())) {
-					switch (preferences.get(i).getType()) {
-					case "Unable":
-						score = -10;
-						break;
-					case "Prefer Not":
-						score = -5;
-						break;
-					case "Would Like":
-						score = 10;
-						break;
+					switch (preferences.get(i).getAvailability()) {
+						case "Unavailable":
+							scale = 0;
+							break;
+						case "Not Ideal":
+							scale = 1;
+							break;
+						case "Fine":
+							scale = 2;
+							break;
+						case "Ideal":
+							scale = 3;
+							break;
 					}
 				}
 			}
-		happiness = happiness + score;
-		return score;
+		availability = availability + scale;
+		return scale;
 
 	}
 }

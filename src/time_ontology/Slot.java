@@ -1,20 +1,20 @@
-package timetable_ontology;
+package time_ontology;
 
 import jade.content.Predicate;
 import jade.core.AID;
 
-public class Timeslot implements Predicate {
+public class Slot implements Predicate {
 
 	private static final long serialVersionUID = 1L;
-	private AID owner;
+	private AID slotOwner;
 	private Tutorial tutorial;
 	
-	public AID getOwner() {
-		return owner;
+	public AID getSlotOwner() {
+		return slotOwner;
 	}
 	
-	public void setOwner(AID owner) {
-		this.owner = owner;
+	public void setSlotOwner(AID slotOwner) {
+		this.slotOwner = slotOwner;
 	}
 	
 	public Tutorial getTutorial() {

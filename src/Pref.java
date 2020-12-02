@@ -1,16 +1,16 @@
 
 public class Pref {
-	String Type;
+	String Availability;
 	String Day;
 	int StartTime;
 	int EndTime;
 	
-	public String getType() {
-		return Type;
+	public String getAvailability() {
+		return Availability;
 	}
 
-	public void setType(String type) {
-		Type = type;
+	public void setAvailability(String availability) {
+		Availability = availability;
 	}
 
 	public String getDay() {
@@ -37,8 +37,8 @@ public class Pref {
 		EndTime = endTime;
 	}
 
-	public Pref(String type, String day, int sTime, int eTime) {
-		Type = type; //Unable, prefer, would like
+	public Pref(String availability, String day, int sTime, int eTime) {
+		Availability = availability;
 		Day = day;
 		StartTime = sTime;
 		EndTime = eTime;

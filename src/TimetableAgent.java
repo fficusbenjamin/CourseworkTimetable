@@ -1,4 +1,3 @@
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,11 +7,9 @@ import jade.content.lang.Codec.CodecException;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
-import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.core.behaviours.WakerBehaviour;
 import jade.domain.DFService;
@@ -21,16 +18,16 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import timetable_ontology.*;
+import time_ontology.*;
 
 public class TimetableAgent extends Agent{
 	private Codec codec = new SLCodec();
-	private Ontology ontology = TimetableOntology.getInstance();
+	private Ontology ontology = TimeOntology.getInstance();
 
 	List<AID> students = new ArrayList<AID>();
 
-	AvailableSlots advertboard = new AvailableSlots();
-	ArrayList<SwapProposal> proposals = new ArrayList<SwapProposal>();
+	Board advertboard = new Board();
+	ArrayList<PropPredicate> proposals = new ArrayList<PropPredicate>();
 
 	int tickCount = 0;
 
@@ -64,24 +61,24 @@ public class TimetableAgent extends Agent{
 						sem.setStudentOwner(students.get(i));
 						sem.setDay("Tuesday");
 						sem.setModuleName("SEM");
-						sem.setModuleNo("SET1010");
-						sem.setCampus("Merchiston");
-						sem.setLecturer("Aaron");
+						sem.setModuleID("SET1010");
+						sem.setRoom("D2");
+						sem.setType("Lecture");
 						sem.setStartTime(1500);
 						sem.setEndTime(1600);
 					} else if (i > 0) {
 						sem.setStudentOwner(students.get(i));
 						sem.setDay("Friday");
 						sem.setModuleName("SEM");
-						sem.setModuleNo("SET1010");
-						sem.setCampus("Merchiston");
-						sem.setLecturer("David <3");
+						sem.setModuleID("SET1010");
+						sem.setRoom("A17");
+						sem.setType("Tutorial");
 						sem.setStartTime(1200);
 						sem.setEndTime(1300);
 					}
 
-					Timeslot owns = new Timeslot();
-					owns.setOwner(students.get(i));
+					Slot owns = new Slot();
+					owns.setSlotOwner(students.get(i));
 					owns.setTutorial(sem);
 					try {
 						// Let JADE convert from Java objects to string
@@ -168,7 +165,7 @@ public class TimetableAgent extends Agent{
 	private void handleSwaps() {
 		for(int i = 0; i < proposals.size(); i++) {
 			for(int j = 0; j < proposals.size(); j++) {
-				if(proposals.get(i).getOwner().equals(proposals.get(j).getProposee())) {
+				if(proposals.get(i).getSlotOwner().equals(proposals.get(j).getSlotRecipient())) {
 
 
 				}
@@ -187,11 +184,11 @@ public class TimetableAgent extends Agent{
 				try {
 					ContentElement ce = null;
 					ce = getContentManager().extractContent(msg);
-					if(ce instanceof SwapProposal) {
-						SwapProposal owns = (SwapProposal) ce;
+					if(ce instanceof PropPredicate) {
+						PropPredicate owns = (PropPredicate) ce;
 						proposals.add(owns);
 						System.out.println("Recieved: "+ owns.getSlot().getModuleName());
-						System.out.println("From: "+ owns.getOwner().getName());
+						System.out.println("From: "+ owns.getSlotOwner().getName());
 						System.out.println(" ");
 					}
 				}
@@ -220,8 +217,8 @@ public class TimetableAgent extends Agent{
 
 					try {
 						// Let JADE convert from Java objects to string
-						AvailableSlots advpredicate = new AvailableSlots();
-						advpredicate.setSlots(advertboard.getSlots());
+						Board advpredicate = new Board();
+						advpredicate.setBoard(advertboard.getBoard());
 						getContentManager().fillContent(reply, advpredicate);
 						//getContentManager().fillContent(reply, (ContentElement) advertBoard);
 						send(reply);
@@ -243,7 +240,7 @@ public class TimetableAgent extends Agent{
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) {
 
-				if (msg.getContent().equals("add me to list")) {
+				if (msg.getContent().equals("addition request")) {
 					students.add(msg.getSender());
 					System.out.println("Student added.");
 				}
@@ -251,9 +248,9 @@ public class TimetableAgent extends Agent{
 					try {
 						ContentElement ce = null;
 						ce = getContentManager().extractContent(msg);
-						if (ce instanceof Timeslot) {
-							Timeslot owns = (Timeslot) ce;
-							advertboard.getSlots().add(owns.getTutorial());
+						if (ce instanceof Slot) {
+							Slot owns = (Slot) ce;
+							advertboard.getBoard().add(owns.getTutorial());
 							System.out.print("Timetabler Agent added slot: " + owns.getTutorial().getModuleName());
 						}
 					}
