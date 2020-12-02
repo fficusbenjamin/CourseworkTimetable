@@ -9,7 +9,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import time_ontology.Board;
-import time_ontology.PropPredicate;
+import time_ontology.Prop;
 import time_ontology.Slot;
 import time_ontology.TimeOntology;
 import time_ontology.Tutorial;
@@ -275,7 +275,7 @@ public class StudentAgent extends Agent {
 						}
 						if(availSlot != -1) {
 							System.out.println("not equal -1");
-							PropPredicate prop = new PropPredicate();
+							Prop prop = new Prop();
 							prop.setSlotOwner(advert.getBoard().get(availSlot).getStudentOwner());
 							prop.setSlot(advert.getBoard().get(availSlot));
 							prop.setSlotRecipient(myAgent.getAID());

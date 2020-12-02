@@ -22,7 +22,7 @@ public class TimeOntology extends BeanOntology {
 			add(Tutorial.class);
 			add(Slot.class);
 			add(Board.class);
-			add(PropPredicate.class);
+			add(Prop.class);
 
 		} catch (BeanOntologyException e) {
 			e.printStackTrace();

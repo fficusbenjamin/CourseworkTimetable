@@ -31,7 +31,7 @@ public class TimetableAgent extends Agent{
 	List<AID> students = new ArrayList<AID>();
 
 	Board advertboard = new Board();
-	ArrayList<PropPredicate> proposals = new ArrayList<PropPredicate>();
+	ArrayList<Prop> proposals = new ArrayList<Prop>();
 
 	int tickCount = 0;
 
@@ -208,8 +208,8 @@ public class TimetableAgent extends Agent{
 				try {
 					ContentElement ce = null;
 					ce = getContentManager().extractContent(msg);
-					if(ce instanceof PropPredicate) {
-						PropPredicate owns = (PropPredicate) ce;
+					if(ce instanceof Prop) {
+						Prop owns = (Prop) ce;
 						proposals.add(owns);
 						System.out.println("Received: "+ owns.getSlot().getModuleName());
 						System.out.println("From: "+ owns.getSlotOwner().getName());

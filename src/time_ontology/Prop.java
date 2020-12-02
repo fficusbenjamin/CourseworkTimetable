@@ -3,11 +3,23 @@ package time_ontology;
 import jade.content.Predicate;
 import jade.core.AID;
 
-public class PropPredicate implements Predicate {
+///------------------------------------------------------------------------
+///   Class:		Prop (Class)
+///   Description:	Class that , being a predicate of the ontology, holds
+///					the unwanted tutorials to be swapped on a board.
+///
+///
+///
+///   Author:		Francesco Fico (40404272)     Date: 02/12/2020
+///------------------------------------------------------------------------
 
+
+public class Prop implements Predicate {
+	//initialise the class variables
 	private AID slotOwner;
 	private AID slotRecipient;
 	private Tutorial slot;
+	//getters and setters for the variables
 	public AID getSlotOwner() {
 		return slotOwner;
 	}
