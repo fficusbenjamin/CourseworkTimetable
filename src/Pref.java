@@ -1,10 +1,22 @@
+///---------------------------------------------------------------------
+///   Class:		Pref (Class)
+///   Description:	Class that sets the preference for the student agent
+///
+///
+///
+///   Author:		Francesco Fico (40404272)     Date: 02/12/2020
+///---------------------------------------------------------------------
+
+
 
 public class Pref {
+	//creates the properties
 	String Availability;
 	String Day;
 	int StartTime;
 	int EndTime;
-	
+
+	//getters and setters for the properties
 	public String getAvailability() {
 		return Availability;
 	}
@@ -37,15 +49,14 @@ public class Pref {
 		EndTime = endTime;
 	}
 
+	//method that assign the properties
 	public Pref(String availability, String day, int sTime, int eTime) {
 		Availability = availability;
 		Day = day;
 		StartTime = sTime;
 		EndTime = eTime;
 	}
+	//constructor
 	public Pref() {
-		
 	}
-	
-
 }
