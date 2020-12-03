@@ -26,18 +26,18 @@ import time_ontology.*;
 
 public class TimetableAgent extends Agent{
 	private Codec codec = new SLCodec();
-	private Ontology ontology = TimeOntology.getInstance();
+	private Ontology timeOntology = TimeOntology.getInstance();
 
 	List<AID> students = new ArrayList<AID>();
 
-	Board advertboard = new Board();
-	ArrayList<Prop> proposals = new ArrayList<Prop>();
+	Board board = new Board();
+	ArrayList<Prop> props = new ArrayList<Prop>();
 
-	int tickCount = 0;
+	int nTicks = 0;
 
 	protected void setup() {
 		getContentManager().registerLanguage(codec);
-		getContentManager().registerOntology(ontology);
+		getContentManager().registerOntology(timeOntology);
 
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
@@ -58,7 +58,7 @@ public class TimetableAgent extends Agent{
 					ACLMessage msg = new ACLMessage(ACLMessage.CFP);
 					msg.addReceiver(students.get(i));
 					msg.setLanguage(codec.getName());
-					msg.setOntology(ontology.getName());
+					msg.setOntology(timeOntology.getName());
 					// Prepare the content.
 					Tutorial sem = new Tutorial();
 					if (i == 0) {
@@ -81,12 +81,11 @@ public class TimetableAgent extends Agent{
 						sem.setEndTime(1300);
 					}
 
-					Slot owns = new Slot();
-					owns.setSlotOwner(students.get(i));
-					owns.setTutorial(sem);
+					Slot slot = new Slot();
+					slot.setSlotOwner(students.get(i));
+					slot.setTutorial(sem);
 					try {
-						// Let JADE convert from Java objects to string
-						getContentManager().fillContent(msg, owns);
+						getContentManager().fillContent(msg, slot);
 						send(msg);
 					} catch (CodecException ce) {
 						ce.printStackTrace();
@@ -108,8 +107,8 @@ public class TimetableAgent extends Agent{
 		addBehaviour(new handleProposal());
 	}
 	private void tick() {
-		if (tickCount < 10) {
-			System.out.println("tick");
+		if (nTicks < 5) {
+			System.out.println("Round " + nTicks);
 			handleSwaps();
 
 			DFAgentDescription template = new DFAgentDescription();
@@ -129,7 +128,7 @@ public class TimetableAgent extends Agent{
 			cfp.setConversationId("timetable setup");
 			this.send(cfp);
 
-			tickCount++;
+			nTicks++;
 
 		} else {
 			// shut down
@@ -168,18 +167,18 @@ public class TimetableAgent extends Agent{
 
 	//CHANGE ORDER
 	private void handleSwaps() {
-		for(int i = 0; i < proposals.size(); i++) {
-			for(int j = 0; j < proposals.size(); j++) {
-				if(proposals.get(i).getSlotOwner().equals(proposals.get(j).getSlotRecipient())) {
+		for(int i = 0; i < props.size(); i++) {
+			for(int j = 0; j < props.size(); j++) {
+				if(props.get(i).getSlotOwner().equals(props.get(j).getSlotRecipient())) {
 					ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-					msg.addReceiver(proposals.get(i).getSlotRecipient());
+					msg.addReceiver(props.get(i).getSlotRecipient());
 					msg.setLanguage(codec.getName());
-					msg.setOntology(ontology.getName());
+					msg.setOntology(timeOntology.getName());
 					// Prepare the content.
 
 					Slot owns = new Slot();
-					owns.setSlotOwner(proposals.get(i).getSlotOwner());
-					owns.setTutorial(proposals.get(i).getSlot());
+					owns.setSlotOwner(props.get(i).getSlotOwner());
+					owns.setTutorial(props.get(i).getSlot());
 					try {
 						// Let JADE convert from Java objects to string
 						getContentManager().fillContent(msg, owns);
@@ -194,7 +193,7 @@ public class TimetableAgent extends Agent{
 				}
 			}
 		}
-		proposals.removeAll(proposals);
+		props.removeAll(props);
 	}
 
 	private class handleProposal extends CyclicBehaviour{
@@ -210,7 +209,7 @@ public class TimetableAgent extends Agent{
 					ce = getContentManager().extractContent(msg);
 					if(ce instanceof Prop) {
 						Prop owns = (Prop) ce;
-						proposals.add(owns);
+						props.add(owns);
 						System.out.println("Received: "+ owns.getSlot().getModuleName());
 						System.out.println("From: "+ owns.getSlotOwner().getName());
 						System.out.println(" ");
@@ -236,13 +235,13 @@ public class TimetableAgent extends Agent{
 					System.out.println("timetable reply");
 					ACLMessage reply = new ACLMessage(ACLMessage.AGREE);
 					reply.setLanguage(codec.getName());
-					reply.setOntology(ontology.getName());
+					reply.setOntology(timeOntology.getName());
 					reply.addReceiver(msg.getSender());
 
 					try {
 						// Let JADE convert from Java objects to string
 						Board advpredicate = new Board();
-						advpredicate.setBoard(advertboard.getBoard());
+						advpredicate.setBoard(board.getBoard());
 						getContentManager().fillContent(reply, advpredicate);
 						//getContentManager().fillContent(reply, (ContentElement) advertBoard);
 						send(reply);
@@ -275,7 +274,7 @@ public class TimetableAgent extends Agent{
 						ce = getContentManager().extractContent(msg);
 						if (ce instanceof Slot) {
 							Slot owns = (Slot) ce;
-							advertboard.getBoard().add(owns.getTutorial());
+							board.getBoard().add(owns.getTutorial());
 							System.out.print("Timetabler Agent added slot: " + owns.getTutorial().getModuleName());
 						}
 					}
