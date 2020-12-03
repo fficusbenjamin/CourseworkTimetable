@@ -268,7 +268,7 @@ public class StudentAgent extends Agent {
 							prop.setProp(board.getBoard().get(availSlot));
 							prop.setSlotRecipient(myAgent.getAID());
 							
-							ACLMessage advertSwap = new ACLMessage(ACLMessage.PROPOSE);
+							ACLMessage swapAttempt = new ACLMessage(ACLMessage.PROPOSE);
 							DFAgentDescription template = new DFAgentDescription();
 							ServiceDescription desc = new ServiceDescription();
 							
@@ -277,19 +277,19 @@ public class StudentAgent extends Agent {
 							try {
 								DFAgentDescription[] availSlotOwner = DFService.search(myAgent, template);
 								if (availSlotOwner.length > 0) {
-									advertSwap.addReceiver(availSlotOwner[0].getName());
+									swapAttempt.addReceiver(availSlotOwner[0].getName());
 								}
 							} catch (FIPAException fe) {
 								fe.printStackTrace();
 							}
-							advertSwap.setLanguage(codec.getName());
-							advertSwap.setOntology(timeOntology.getName());
+							swapAttempt.setLanguage(codec.getName());
+							swapAttempt.setOntology(timeOntology.getName());
 							
 							try {
 								// Let JADE convert from Java objects to string
 								System.out.println("Swap requested");
-								getContentManager().fillContent(advertSwap, prop);
-								send(advertSwap);
+								getContentManager().fillContent(swapAttempt, prop);
+								send(swapAttempt);
 								System.out.print("Swap sent");
 							} catch (CodecException | OntologyException ce2) {
 								ce2.printStackTrace();

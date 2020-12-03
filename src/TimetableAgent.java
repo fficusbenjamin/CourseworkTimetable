@@ -167,15 +167,15 @@ public class TimetableAgent extends Agent{
 		System.out.println("Shutting down agents.");
 	}
 
-	//CHANGE ORDER
+
 	private void recSwap() {
 		for(int i = 0; i < props.size(); i++) {
 			for (Prop prop : props) {
 				if (props.get(i).getSlotOwner().equals(prop.getSlotRecipient())) {
-					ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-					msg.addReceiver(props.get(i).getSlotRecipient());
-					msg.setLanguage(codec.getName());
-					msg.setOntology(timeOntology.getName());
+					ACLMessage acceptMsg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+					acceptMsg.addReceiver(props.get(i).getSlotRecipient());
+					acceptMsg.setLanguage(codec.getName());
+					acceptMsg.setOntology(timeOntology.getName());
 					// Prepare the content.
 
 					Slot slot = new Slot();
@@ -183,8 +183,8 @@ public class TimetableAgent extends Agent{
 					slot.setSlot(props.get(i).getProp());
 					try {
 						// Let JADE convert from Java objects to string
-						getContentManager().fillContent(msg, slot);
-						send(msg);
+						getContentManager().fillContent(acceptMsg, slot);
+						send(acceptMsg);
 					} catch (CodecException | OntologyException ce) {
 						ce.printStackTrace();
 					}
@@ -263,7 +263,6 @@ public class TimetableAgent extends Agent{
 							board.getBoard().add(owns.getSlot());
 							System.out.print("Timetable Agent has: " + owns.getSlot().getModuleName());
 							System.out.println(" ");
-
 						}
 					}
 					catch (CodecException | OntologyException ce) {
