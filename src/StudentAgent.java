@@ -8,15 +8,9 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import time_ontology.Board;
-import time_ontology.Prop;
-import time_ontology.Slot;
-import time_ontology.TimeOntology;
-import time_ontology.Tutorial;
-
+import time_ontology.*;
 import java.util.ArrayList;
 import java.util.List;
-
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.lang.Codec.CodecException;
@@ -24,6 +18,13 @@ import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.core.AID;
+
+///-------------------------------------------------------------------
+///   Class:		App (Class)
+///   Description:	Student agent class
+///
+///   Author:		Francesco Fico (40404272)     Date: 02/12/2020
+///-------------------------------------------------------------------
 
 public class StudentAgent extends Agent {
 	private Codec codec = new SLCodec();
@@ -50,12 +51,10 @@ public class StudentAgent extends Agent {
 		}
 		getContentManager().registerLanguage(codec);
 		getContentManager().registerOntology(timeOntology);
-		// System.out.println("Hello! Buyer-agent " + getAID().getName() + " is
-		// ready.");
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
-		sd.setType("timetable-system");
+		sd.setType("timetable setup");
 		sd.setName("student");
 		dfd.addServices(sd);
 		try {
@@ -91,7 +90,7 @@ public class StudentAgent extends Agent {
 				fe.printStackTrace();
 			}
 			cfp.setContent("addition request");
-			cfp.setConversationId("timetable-system");
+			cfp.setConversationId("timetable setup");
 			cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 			myAgent.send(cfp);
 		}
@@ -140,7 +139,7 @@ public class StudentAgent extends Agent {
 								conformMsg.addReceiver(result[0].getName());
 								System.out.println("result " + result[0].getName());
 
-								conformMsg.setConversationId("timetable-system");
+								conformMsg.setConversationId("timetable setup");
 
 								// Let JADE convert from Java objects to string
 								System.out.println("confirmation message sent");
@@ -170,7 +169,7 @@ public class StudentAgent extends Agent {
 
 									swapMsg.setLanguage(codec.getName());
 									swapMsg.setOntology(timeOntology.getName());
-									swapMsg.setConversationId("timetable-system");
+									swapMsg.setConversationId("timetable setup");
 
 									try {
 										// Let JADE convert from Java objects to string
@@ -236,7 +235,7 @@ public class StudentAgent extends Agent {
 							fe.printStackTrace();
 						}
 						cfp.setContent("requestTimetable");
-						cfp.setConversationId("timetable-system");
+						cfp.setConversationId("timetable setup");
 						cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 						myAgent.send(cfp);
 					}

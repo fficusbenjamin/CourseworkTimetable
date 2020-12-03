@@ -6,8 +6,8 @@ import jade.content.Predicate;
 
 ///------------------------------------------------------------------------
 ///   Class:		Board (Class)
-///   Description:	Class that , being a predicate of the ontology,holds
-///					the unwanted tutorials to be swapped on a board.
+///   Description:	Class that, being a predicate of the ontology,holds
+///					the list of unwanted tutorials to be swapped on a board.
 ///
 ///
 ///

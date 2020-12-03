@@ -126,7 +126,7 @@ public class TimetableAgent extends Agent{
 				fe.printStackTrace();
 			}
 			cfp.setContent("tickInform");
-			cfp.setConversationId("timetable-system");
+			cfp.setConversationId("timetable setup");
 			this.send(cfp);
 
 			tickCount++;
@@ -148,7 +148,7 @@ public class TimetableAgent extends Agent{
 				fe.printStackTrace();
 			}
 			cfp.setContent("takedownRequest");
-			cfp.setConversationId("timetable-system");
+			cfp.setConversationId("timetable setup");
 			this.send(cfp);
 
 			this.doDelete();
