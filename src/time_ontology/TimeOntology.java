@@ -8,7 +8,8 @@ import java.io.Serial;
 
 ///------------------------------------------------------------------------
 ///   Class:		TimeOntology (Class)
-///   Description:	Tutorial class that states all its properties
+///   Description:	TimeOntology class that creates an instance of itself
+///					and add all its predicate.
 ///
 ///
 ///

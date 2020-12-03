@@ -18,7 +18,8 @@ public class Prop implements Predicate {
 	//initialise the class variables
 	private AID slotOwner;
 	private AID slotRecipient;
-	private Tutorial slot;
+	private Tutorial prop;
+
 	//getters and setters for the variables
 	public AID getSlotOwner() {
 		return slotOwner;
@@ -32,11 +33,11 @@ public class Prop implements Predicate {
 	public void setSlotRecipient(AID slotRecipient) {
 		this.slotRecipient = slotRecipient;
 	}
-	public Tutorial getSlot() {
-		return slot;
+	public Tutorial getProp() {
+		return prop;
 	}
-	public void setSlot(Tutorial slot) {
-		this.slot = slot;
+	public void setProp(Tutorial prop) {
+		this.prop = prop;
 	}
 	
 	

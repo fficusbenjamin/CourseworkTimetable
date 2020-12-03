@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.lang.Codec.CodecException;
@@ -20,20 +19,28 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import time_ontology.*;
 
-
-//REFACTOR CLASS AND VARIABLE NAMES, MAKE SURE ALL THE PRINTED STRINGS ARE CHANGED EVERYWHERE
+///--------------------------------------------------------------------
+///   Class:		Timetable Agent (Class)
+///   Description:	Timetable agent class is the class that holds the
+///					the timetable agent and all the methods needed to
+///					perform all the communication with the student
+///					agent, the creation of a timetable and the ontology
+///					instance.
+///
+///   Author:		Francesco Fico (40404272)     Date: 02/12/2020
+///--------------------------------------------------------------------
 
 
 public class TimetableAgent extends Agent{
-	private Codec codec = new SLCodec();
-	private Ontology timeOntology = TimeOntology.getInstance();
+	private final Codec codec = new SLCodec();
+	private final Ontology timeOntology = TimeOntology.getInstance();
 
-	List<AID> students = new ArrayList<AID>();
+	List<AID> students = new ArrayList<>();
 
 	Board board = new Board();
-	ArrayList<Prop> props = new ArrayList<Prop>();
+	ArrayList<Prop> props = new ArrayList<>();
 
-	int nTicks = 0;
+	int nmbTicks = 0;
 
 	protected void setup() {
 		getContentManager().registerLanguage(codec);
@@ -42,8 +49,8 @@ public class TimetableAgent extends Agent{
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
-		sd.setType("TimetableAgent");
-		sd.setName("TimetableAgent");
+		sd.setType("Timetable Agent");
+		sd.setName("Timetable Agent");
 		dfd.addServices(sd);
 		try {
 			DFService.register(this, dfd);
@@ -52,7 +59,7 @@ public class TimetableAgent extends Agent{
 		}
 		addBehaviour(new WakerBehaviour(this, 10000) {
 			protected void onWake() {
-				System.out.println("Student Agents " + students.size());
+				System.out.println("The timetable has " + students.size() + " Student Agents." );
 				for (int i = 0; i < students.size(); i++) {
 					// Prepare the Query-IF message
 					ACLMessage msg = new ACLMessage(ACLMessage.CFP);
@@ -70,7 +77,7 @@ public class TimetableAgent extends Agent{
 						sem.setType("Lecture");
 						sem.setStartTime(1500);
 						sem.setEndTime(1600);
-					} else if (i > 0) {
+					} else {
 						sem.setStudentOwner(students.get(i));
 						sem.setDay("Friday");
 						sem.setModuleName("SEM");
@@ -83,38 +90,36 @@ public class TimetableAgent extends Agent{
 
 					Slot slot = new Slot();
 					slot.setSlotOwner(students.get(i));
-					slot.setTutorial(sem);
+					slot.setSlot(sem);
 					try {
 						getContentManager().fillContent(msg, slot);
 						send(msg);
-					} catch (CodecException ce) {
+					} catch (CodecException | OntologyException ce) {
 						ce.printStackTrace();
-					} catch (OntologyException oe) {
-						oe.printStackTrace();
 					}
 				}
 			}
 		});
 		addBehaviour(new TickerBehaviour(this, 6000) {
 			protected void onTick() {
-				tick();
+				newTick();
 			}
 		});
-		this.addBehaviour(new StudentRegister());
-		this.addBehaviour(new DeconstructStudents());
-		this.addBehaviour(new ConfirmTimetable());
-		addBehaviour(new handleRequest());
-		addBehaviour(new handleProposal());
+		this.addBehaviour(new addStudents());
+		this.addBehaviour(new shutdown());
+		addBehaviour(new assignedTimetable());
+		addBehaviour(new recTimetableRequest());
+		addBehaviour(new recProposal());
 	}
-	private void tick() {
-		if (nTicks < 5) {
-			System.out.println("Round " + nTicks);
-			handleSwaps();
+	private void newTick() {
+		if (nmbTicks < 5) {
+			System.out.println("Round " + (nmbTicks+1));
+			recSwap();
 
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription desc = new ServiceDescription();
 			ACLMessage cfp = new ACLMessage(ACLMessage.INFORM);
-			desc.setType("TimetableAgent");
+			desc.setType("Timetable Agent");
 			template.addServices(desc);
 			try {
 				DFAgentDescription[] result = DFService.search(this, template);
@@ -124,19 +129,16 @@ public class TimetableAgent extends Agent{
 			} catch (FIPAException fe) {
 				fe.printStackTrace();
 			}
-			cfp.setContent("tickInform");
+			cfp.setContent("newTick");
 			cfp.setConversationId("timetable setup");
 			this.send(cfp);
 
-			nTicks++;
-
+			nmbTicks++;
 		} else {
-			// shut down
-			System.out.println("Decontstruction started");
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription desc = new ServiceDescription();
 			ACLMessage cfp = new ACLMessage(ACLMessage.INFORM);
-			desc.setType("TimetableAgent");
+			desc.setType("Timetable Agent");
 			template.addServices(desc);
 			try {
 				DFAgentDescription[] result = DFService.search(this, template);
@@ -162,94 +164,79 @@ public class TimetableAgent extends Agent{
 		} catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
-		System.out.println("Timetabler agent terminating.");
+		System.out.println("Shutting down agents.");
 	}
 
 	//CHANGE ORDER
-	private void handleSwaps() {
+	private void recSwap() {
 		for(int i = 0; i < props.size(); i++) {
-			for(int j = 0; j < props.size(); j++) {
-				if(props.get(i).getSlotOwner().equals(props.get(j).getSlotRecipient())) {
+			for (Prop prop : props) {
+				if (props.get(i).getSlotOwner().equals(prop.getSlotRecipient())) {
 					ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
 					msg.addReceiver(props.get(i).getSlotRecipient());
 					msg.setLanguage(codec.getName());
 					msg.setOntology(timeOntology.getName());
 					// Prepare the content.
 
-					Slot owns = new Slot();
-					owns.setSlotOwner(props.get(i).getSlotOwner());
-					owns.setTutorial(props.get(i).getSlot());
+					Slot slot = new Slot();
+					slot.setSlotOwner(props.get(i).getSlotOwner());
+					slot.setSlot(props.get(i).getProp());
 					try {
 						// Let JADE convert from Java objects to string
-						getContentManager().fillContent(msg, owns);
-						System.out.println("sent");
+						getContentManager().fillContent(msg, slot);
 						send(msg);
-					} catch (CodecException ce) {
+					} catch (CodecException | OntologyException ce) {
 						ce.printStackTrace();
-					} catch (OntologyException oe) {
-						oe.printStackTrace();
 					}
-
 				}
 			}
 		}
 		props.removeAll(props);
 	}
 
-	private class handleProposal extends CyclicBehaviour{
+	private class recProposal extends CyclicBehaviour{
 		public void action() {
 			// TODO Auto-generated method stub
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
 			ACLMessage msg = myAgent.receive(mt);
-			//System.out.println("msg not null");
-
 			if(msg != null) {
 				try {
-					ContentElement ce = null;
+					ContentElement ce;
 					ce = getContentManager().extractContent(msg);
 					if(ce instanceof Prop) {
-						Prop owns = (Prop) ce;
-						props.add(owns);
-						System.out.println("Received: "+ owns.getSlot().getModuleName());
-						System.out.println("From: "+ owns.getSlotOwner().getName());
+						Prop prop = (Prop) ce;
+						props.add(prop);
+						System.out.println("Received: (Module Name)"+ prop.getProp().getModuleName());
+						System.out.println("From: (Student Name)"+ prop.getSlotOwner().getName());
 						System.out.println(" ");
 					}
 				}
-				catch (CodecException ce) {
+				catch (CodecException | OntologyException ce) {
 					ce.printStackTrace();
-				} catch (OntologyException oe) {
-					oe.printStackTrace();
 				}
 			}
 		}
-
 	}
 
-	private class handleRequest extends CyclicBehaviour{
+	private class recTimetableRequest extends CyclicBehaviour{
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
 			ACLMessage msg = myAgent.receive(mt);
 
 			if(msg != null) {
-				if(msg.getContent().equals("requestTimetable")) {
-					System.out.println("timetable reply");
-					ACLMessage reply = new ACLMessage(ACLMessage.AGREE);
-					reply.setLanguage(codec.getName());
-					reply.setOntology(timeOntology.getName());
-					reply.addReceiver(msg.getSender());
+				if(msg.getContent().equals("reqTimetable")) {
+					ACLMessage timetableReply = new ACLMessage(ACLMessage.AGREE);
+					timetableReply.setLanguage(codec.getName());
+					timetableReply.setOntology(timeOntology.getName());
+					timetableReply.addReceiver(msg.getSender());
 
 					try {
 						// Let JADE convert from Java objects to string
-						Board advpredicate = new Board();
-						advpredicate.setBoard(board.getBoard());
-						getContentManager().fillContent(reply, advpredicate);
-						//getContentManager().fillContent(reply, (ContentElement) advertBoard);
-						send(reply);
-						//System.out.println(msg.getSender());
-					} catch (CodecException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (OntologyException e) {
+						Board board = new Board();
+						board.setBoard(TimetableAgent.this.board.getBoard());
+						getContentManager().fillContent(timetableReply, board);
+						send(timetableReply);
+					} catch (CodecException | OntologyException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
@@ -258,74 +245,70 @@ public class TimetableAgent extends Agent{
 		}
 	}
 
-	private class StudentRegister extends CyclicBehaviour {
+	private class addStudents extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) {
-
 				if (msg.getContent().equals("addition request")) {
 					students.add(msg.getSender());
-					System.out.println("Student added.");
+					new assignedTimetable();
 				}
 				else {
 					try {
-						ContentElement ce = null;
+						ContentElement ce;
 						ce = getContentManager().extractContent(msg);
 						if (ce instanceof Slot) {
 							Slot owns = (Slot) ce;
-							board.getBoard().add(owns.getTutorial());
-							System.out.print("Timetabler Agent added slot: " + owns.getTutorial().getModuleName());
+							board.getBoard().add(owns.getSlot());
+							System.out.print("Timetable Agent has: " + owns.getSlot().getModuleName());
+							System.out.println(" ");
+
 						}
 					}
-
-					catch (CodecException ce) {
+					catch (CodecException | OntologyException ce) {
 						ce.printStackTrace();
-					} catch (OntologyException oe) {
-						oe.printStackTrace();
 					}
 				}
 			}
 		}
 	}
 	
-	private class ConfirmTimetable extends CyclicBehaviour {
+	private static class assignedTimetable extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) {
-				System.out.println(msg.getSender().getName() + " confirmed timetable");
+				System.out.println(msg.getSender().getName() + " has been assigned a timetable");
 			}
 		}
 	}
 
-	private class DeconstructStudents extends CyclicBehaviour {
+	private class shutdown extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
 			ACLMessage msg = myAgent.receive(mt);
 
 			if (msg != null) {
 				if (msg.getContent().equals("takedownRequest")) {
-					for (int i = 0; i < students.size(); i++) {
+					for (AID student : students) {
 						DFAgentDescription template = new DFAgentDescription();
 						ServiceDescription desc = new ServiceDescription();
 						ACLMessage inform = new ACLMessage(ACLMessage.INFORM);
 						template.addServices(desc);
-						inform.addReceiver(students.get(i));
+						inform.addReceiver(student);
 						inform.setContent("takedownRequest");
 						myAgent.send(inform);
 					}
-					System.out.println("Agent called");
 					myAgent.doDelete();
-				} else if (msg.getContent().equals("tickInform")) {
-					System.out.println("new advertiser tick");
-					for (int i = 0; i < students.size(); i++) {
+				} else if (msg.getContent().equals("newTick")) {
+					for (AID student : students) {
 						DFAgentDescription template = new DFAgentDescription();
 						ServiceDescription desc = new ServiceDescription();
 						ACLMessage inform = new ACLMessage(ACLMessage.INFORM);
 						template.addServices(desc);
-						inform.addReceiver(students.get(i));
-						inform.setContent("tickInform");
+						inform.addReceiver(student);
+						inform.setContent("newTick");
 						myAgent.send(inform);
 					}
 				}

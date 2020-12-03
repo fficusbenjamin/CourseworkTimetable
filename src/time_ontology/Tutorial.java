@@ -5,7 +5,8 @@ import jade.core.AID;
 
 ///------------------------------------------------------------------------
 ///   Class:		Tutorial (Class)
-///   Description:	Tutorial class that states all its properties
+///   Description:	Tutorial class that implement JADE concept, states all
+///					the properties of the actual class
 ///
 ///
 ///
@@ -56,12 +57,12 @@ public class Tutorial implements Concept {
 		this.type = type;
 	}
 
-	public String getRoom() {
-		return room;
-	}
-
 	public void setRoom(String room) {
 		this.room = room;
+	}
+
+	public String getRoom() {
+		return room;
 	}
 
 	public String getDay() {

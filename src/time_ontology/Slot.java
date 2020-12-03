@@ -21,7 +21,8 @@ public class Slot implements Predicate {
 	private static final long serialVersionUID = 1L;
 	//initialise the class variables
 	private AID slotOwner;
-	private Tutorial tutorial;
+	private Tutorial slot;
+
 	//getters and setters for the variables
 	public AID getSlotOwner() {
 		return slotOwner;
@@ -31,11 +32,11 @@ public class Slot implements Predicate {
 		this.slotOwner = slotOwner;
 	}
 	
-	public Tutorial getTutorial() {
-		return tutorial;
+	public Tutorial getSlot() {
+		return slot;
 	}
 	
-	public void setTutorial(Tutorial tutorial) {
-		this.tutorial = tutorial;
+	public void setSlot(Tutorial slot) {
+		this.slot = slot;
 	}
 }
