@@ -217,21 +217,21 @@ public class StudentAgent extends Agent {
 					if(reqSwap) {
 						DFAgentDescription template = new DFAgentDescription();
 						ServiceDescription desc = new ServiceDescription();
-						ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
+						ACLMessage reqMsg = new ACLMessage(ACLMessage.REQUEST);
 						desc.setType("Timetable Agent");
 						template.addServices(desc);
 						try {
 							DFAgentDescription[] availRecip = DFService.search(myAgent, template);
 							if (availRecip.length > 0) {
-								cfp.addReceiver(availRecip[0].getName());
+								reqMsg.addReceiver(availRecip[0].getName());
 							}
 						} catch (FIPAException fe) {
 							fe.printStackTrace();
 						}
-						cfp.setContent("reqTimetable");
-						cfp.setConversationId("timetable setup");
-						cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-						myAgent.send(cfp);
+						reqMsg.setContent("reqTimetable");
+						reqMsg.setConversationId("timetable setup");
+						reqMsg.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+						myAgent.send(reqMsg);
 					}
 				}
 			}
