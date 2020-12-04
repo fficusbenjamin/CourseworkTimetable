@@ -274,7 +274,6 @@ public class StudentAgent extends Agent {
 						}
 					}
 				} catch (CodecException | OntologyException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
