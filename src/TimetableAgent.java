@@ -67,29 +67,29 @@ public class TimetableAgent extends Agent{
 					msg.setLanguage(codec.getName());
 					msg.setOntology(timeOntology.getName());
 					//prepare the content.
-					Tutorial sem = new Tutorial();
+					Tutorial mas = new Tutorial();
 					if (i == 0) {
-						sem.setStudentOwner(students.get(i));
-						sem.setDay("Tuesday");
-						sem.setModuleName("SEM");
-						sem.setModuleID("SET1010");
-						sem.setRoom("D2");
-						sem.setType("Lecture");
-						sem.setStartTime(1500);
-						sem.setEndTime(1600);
+						mas.setStudentOwner(students.get(i));
+						mas.setDay("Tuesday");
+						mas.setModuleName("Multi-Agent System");
+						mas.setModuleID("SET10111");
+						mas.setRoom("D2");
+						mas.setType("Tutorial");
+						mas.setStartTime(1500);
+						mas.setEndTime(1600);
 					} else {
-						sem.setStudentOwner(students.get(i));
-						sem.setDay("Friday");
-						sem.setModuleName("SEM");
-						sem.setModuleID("SET1010");
-						sem.setRoom("A17");
-						sem.setType("Tutorial");
-						sem.setStartTime(1200);
-						sem.setEndTime(1300);
+						mas.setStudentOwner(students.get(i));
+						mas.setDay("Friday");
+						mas.setModuleName("Multi-Agent System");
+						mas.setModuleID("SET10111");
+						mas.setRoom("A17");
+						mas.setType("Lecture");
+						mas.setStartTime(1200);
+						mas.setEndTime(1300);
 					}
 					Slot slot = new Slot();
 					slot.setSlotOwner(students.get(i));
-					slot.setSlot(sem);
+					slot.setSlot(mas);
 					try {
 						getContentManager().fillContent(msg, slot);
 						send(msg);
