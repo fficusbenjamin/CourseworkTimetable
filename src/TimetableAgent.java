@@ -60,43 +60,9 @@ public class TimetableAgent extends Agent{
 		addBehaviour(new WakerBehaviour(this, 10000) {
 			protected void onWake() {
 				System.out.println("The timetable has " + students.size() + " Student Agents." );
-				for (int i = 0; i < students.size(); i++) {
-					//prepare the Query-IF message
-					ACLMessage msg = new ACLMessage(ACLMessage.CFP);
-					msg.addReceiver(students.get(i));
-					msg.setLanguage(codec.getName());
-					msg.setOntology(timeOntology.getName());
-					//prepare the content.
-					Tutorial mas = new Tutorial();
-					if (i == 0) {
-						mas.setStudentOwner(students.get(i));
-						mas.setDay("Tuesday");
-						mas.setModuleName("Multi-Agent System");
-						mas.setModuleID("SET10111");
-						mas.setRoom("D2");
-						mas.setType("Tutorial");
-						mas.setStartTime(1500);
-						mas.setEndTime(1600);
-					} else {
-						mas.setStudentOwner(students.get(i));
-						mas.setDay("Friday");
-						mas.setModuleName("Multi-Agent System");
-						mas.setModuleID("SET10111");
-						mas.setRoom("A17");
-						mas.setType("Lecture");
-						mas.setStartTime(1200);
-						mas.setEndTime(1300);
-					}
-					Slot slot = new Slot();
-					slot.setSlotOwner(students.get(i));
-					slot.setSlot(mas);
-					try {
-						getContentManager().fillContent(msg, slot);
-						send(msg);
-					} catch (CodecException | OntologyException ce) {
-						ce.printStackTrace();
-					}
-				}
+				
+				TestOne();
+
 			}
 		});
 		//add tick behaviour
@@ -168,6 +134,62 @@ public class TimetableAgent extends Agent{
 		}
 		System.out.println("Shutting down agents.");
 	}
+
+	private void testOne() {
+		for (int i = 0; i < students.size(); i++) {
+			//prepare the Query-IF message
+			ACLMessage msgOne = new ACLMessage(ACLMessage.CFP);
+				msgOne.addReceiver(studentList.get(i));
+				msgOne.setLanguage(codec.getName());
+				msgOne.setOntology(ontology.getName());
+	
+				ACLMessage msgTwo = new ACLMessage(ACLMessage.CFP);
+				msgTwo.addReceiver(studentList.get(i));
+				msgTwo.setLanguage(codec.getName());
+				msgTwo.setOntology(ontology.getName());
+	
+				
+			//prepare the content.
+			Tutorial mas = new Tutorial();
+		   // Tutorial tutorial2 = new Tutorial();
+			if (i == 0) {
+				mas.setStudentOwner(students.get(i));
+				mas.setDay("Tuesday");
+				mas.setModuleName("Multi-Agent System");
+				mas.setModuleID("SET10111");
+				mas.setRoom("D2");
+				mas.setType("Tutorial");
+				mas.setStartTime(1500);
+				mas.setEndTime(1600);
+			} else {
+				mas.setStudentOwner(students.get(i));
+				mas.setDay("Friday");
+				mas.setModuleName("Multi-Agent System");
+				mas.setModuleID("SET10111");
+				mas.setRoom("A17");
+				mas.setType("Lecture");
+				mas.setStartTime(1200);
+				mas.setEndTime(1300);
+			}
+			Slot slot = new Slot();
+			slot.setSlotOwner(students.get(i));
+			slot.setSlot(mas);
+	
+			//Slot slo2 = new Slot();
+			//slot2.setSlotOwner(students.get(i));
+			//slot2.setSlot(mas);
+			try {
+				getContentManager().fillContent(msgOne, slot);
+				send(msgOne);
+			} catch (CodecException | OntologyException ce) {
+				ce.printStackTrace();
+			}
+		}
+	
+		
+	}
+	
+	
 
 	//request swap method
 	private void recSwap() {
