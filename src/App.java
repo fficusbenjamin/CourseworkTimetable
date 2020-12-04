@@ -21,7 +21,7 @@ import jade.wrapper.ContainerController;
 public class App {
 	public static void main(String[] args) {
 
-		// creates the profile, runtime and container
+		// initialise the profile, runtime and container
 		Profile myProfile = new ProfileImpl();
 		Runtime myRuntime = Runtime.instance();
 		ContainerController myContainer = myRuntime.createMainContainer(myProfile);	
