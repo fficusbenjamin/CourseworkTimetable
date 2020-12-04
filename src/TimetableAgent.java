@@ -60,9 +60,10 @@ public class TimetableAgent extends Agent{
 		addBehaviour(new WakerBehaviour(this, 10000) {
 			protected void onWake() {
 				System.out.println("The timetable has " + students.size() + " Student Agents." );
-				
-				TestOne();
-
+				//one module two types (Lecture and tutorial)
+				test1();
+				//two modules
+				//test2();
 			}
 		});
 		//add tick behaviour
@@ -135,23 +136,15 @@ public class TimetableAgent extends Agent{
 		System.out.println("Shutting down agents.");
 	}
 
-	private void testOne() {
+	private void test1() {
 		for (int i = 0; i < students.size(); i++) {
 			//prepare the Query-IF message
-			ACLMessage msgOne = new ACLMessage(ACLMessage.CFP);
-				msgOne.addReceiver(studentList.get(i));
-				msgOne.setLanguage(codec.getName());
-				msgOne.setOntology(ontology.getName());
-	
-				ACLMessage msgTwo = new ACLMessage(ACLMessage.CFP);
-				msgTwo.addReceiver(studentList.get(i));
-				msgTwo.setLanguage(codec.getName());
-				msgTwo.setOntology(ontology.getName());
-	
-				
+			ACLMessage msg = new ACLMessage(ACLMessage.CFP);
+				msg.addReceiver(students.get(i));
+				msg.setLanguage(codec.getName());
+				msg.setOntology(timeOntology.getName());
 			//prepare the content.
 			Tutorial mas = new Tutorial();
-		   // Tutorial tutorial2 = new Tutorial();
 			if (i == 0) {
 				mas.setStudentOwner(students.get(i));
 				mas.setDay("Tuesday");
@@ -174,22 +167,80 @@ public class TimetableAgent extends Agent{
 			Slot slot = new Slot();
 			slot.setSlotOwner(students.get(i));
 			slot.setSlot(mas);
-	
-			//Slot slo2 = new Slot();
-			//slot2.setSlotOwner(students.get(i));
-			//slot2.setSlot(mas);
 			try {
-				getContentManager().fillContent(msgOne, slot);
-				send(msgOne);
+				getContentManager().fillContent(msg, slot);
+				send(msg);
 			} catch (CodecException | OntologyException ce) {
 				ce.printStackTrace();
 			}
 		}
-	
-		
 	}
-	
-	
+
+	private void test2() {
+		for (int i = 0; i < students.size(); i++) {
+			//prepare the Query-IF message
+			ACLMessage msgOne = new ACLMessage(ACLMessage.CFP);
+			msgOne.addReceiver(students.get(i));
+			msgOne.setLanguage(codec.getName());
+			msgOne.setOntology(timeOntology.getName());
+			ACLMessage msgTwo = new ACLMessage(ACLMessage.CFP);
+			msgTwo.addReceiver(students.get(i));
+			msgTwo.setLanguage(codec.getName());
+			msgTwo.setOntology(timeOntology.getName());
+			//prepare the content.
+			Tutorial mas = new Tutorial();
+			Tutorial ai = new Tutorial();
+			if (i == 0) {
+				mas.setStudentOwner(students.get(i));
+				mas.setDay("Tuesday");
+				mas.setModuleName("Multi-Agent System");
+				mas.setModuleID("SET10111");
+				mas.setRoom("D2");
+				mas.setType("Tutorial");
+				mas.setStartTime(1500);
+				mas.setEndTime(1600);
+				ai.setStudentOwner(students.get(i));
+				ai.setDay("Friday");
+				ai.setModuleName("Artificial Intelligence");
+				ai.setModuleID("SET09122");
+				ai.setRoom("A17");
+				ai.setType("Lecture");
+				ai.setStartTime(1200);
+				ai.setEndTime(1300);
+			} else {
+				mas.setStudentOwner(students.get(i));
+				mas.setDay("Wednesday");
+				mas.setModuleName("Multi-Agent System");
+				mas.setModuleID("SET10111");
+				mas.setRoom("D2");
+				mas.setType("Tutorial");
+				mas.setStartTime(1500);
+				mas.setEndTime(1600);
+				ai.setStudentOwner(students.get(i));
+				ai.setDay("Thursday");
+				ai.setModuleName("Artificial Intelligence");
+				ai.setModuleID("SET09122");
+				ai.setRoom("A17");
+				ai.setType("Lecture");
+				ai.setStartTime(1200);
+				ai.setEndTime(1300);
+			}
+			Slot slotOne = new Slot();
+			slotOne.setSlotOwner(students.get(i));
+			slotOne.setSlot(mas);
+			Slot slotTwo = new Slot();
+			slotTwo.setSlotOwner(students.get(i));
+			slotTwo.setSlot(ai);
+			try {
+				getContentManager().fillContent(msgOne, slotOne);
+				send(msgOne);
+				getContentManager().fillContent(msgTwo, slotTwo);
+				send(msgTwo);
+			} catch (CodecException | OntologyException ce) {
+				ce.printStackTrace();
+			}
+		}
+	}
 
 	//request swap method
 	private void recSwap() {
