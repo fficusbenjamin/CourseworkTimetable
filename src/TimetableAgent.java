@@ -22,7 +22,7 @@ import time_ontology.*;
 ///--------------------------------------------------------------------
 ///   Class:		Timetable Agent (Class)
 ///   Description:	Timetable agent class is the class that holds the
-///					the timetable agent and all the methods needed to
+///					the timetable agent and all the classes needed to
 ///					perform all the communication with the student
 ///					agent, the creation of a timetable and the ontology
 ///					instance.
@@ -32,16 +32,15 @@ import time_ontology.*;
 
 
 public class TimetableAgent extends Agent{
+	//initialise variables
 	private final Codec codec = new SLCodec();
 	private final Ontology timeOntology = TimeOntology.getInstance();
-
 	List<AID> students = new ArrayList<>();
-
 	Board board = new Board();
 	ArrayList<Prop> props = new ArrayList<>();
-
 	int nmbTicks = 0;
 
+	//setup
 	protected void setup() {
 		getContentManager().registerLanguage(codec);
 		getContentManager().registerOntology(timeOntology);
@@ -57,16 +56,17 @@ public class TimetableAgent extends Agent{
 		} catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
+		//add behaviour on wake
 		addBehaviour(new WakerBehaviour(this, 10000) {
 			protected void onWake() {
 				System.out.println("The timetable has " + students.size() + " Student Agents." );
 				for (int i = 0; i < students.size(); i++) {
-					// Prepare the Query-IF message
+					//prepare the Query-IF message
 					ACLMessage msg = new ACLMessage(ACLMessage.CFP);
 					msg.addReceiver(students.get(i));
 					msg.setLanguage(codec.getName());
 					msg.setOntology(timeOntology.getName());
-					// Prepare the content.
+					//prepare the content.
 					Tutorial sem = new Tutorial();
 					if (i == 0) {
 						sem.setStudentOwner(students.get(i));
@@ -87,7 +87,6 @@ public class TimetableAgent extends Agent{
 						sem.setStartTime(1200);
 						sem.setEndTime(1300);
 					}
-
 					Slot slot = new Slot();
 					slot.setSlotOwner(students.get(i));
 					slot.setSlot(sem);
@@ -100,22 +99,25 @@ public class TimetableAgent extends Agent{
 				}
 			}
 		});
+		//add tick behaviour
 		addBehaviour(new TickerBehaviour(this, 6000) {
 			protected void onTick() {
 				newTick();
 			}
 		});
+		//add all the remnant behaviours
 		this.addBehaviour(new addStudents());
 		this.addBehaviour(new shutdown());
 		addBehaviour(new assignedTimetable());
 		addBehaviour(new recTimetableRequest());
 		addBehaviour(new recProposal());
 	}
+	//new tick method
 	private void newTick() {
+		//limited to 5 cycles for test purposes
 		if (nmbTicks < 5) {
 			System.out.println("Round " + (nmbTicks+1));
 			recSwap();
-
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription desc = new ServiceDescription();
 			ACLMessage cfp = new ACLMessage(ACLMessage.INFORM);
@@ -156,9 +158,9 @@ public class TimetableAgent extends Agent{
 		}
 	}
 
-	// Put agent clean-up operations here
+	//clean-up operations
 	protected void takeDown() {
-		// Deregister from the yellow pages
+		//deregister
 		try {
 			DFService.deregister(this);
 		} catch (FIPAException fe) {
@@ -167,7 +169,7 @@ public class TimetableAgent extends Agent{
 		System.out.println("Shutting down agents.");
 	}
 
-
+	//request swap method
 	private void recSwap() {
 		for(int i = 0; i < props.size(); i++) {
 			for (Prop prop : props) {
@@ -176,13 +178,12 @@ public class TimetableAgent extends Agent{
 					acceptMsg.addReceiver(props.get(i).getSlotRecipient());
 					acceptMsg.setLanguage(codec.getName());
 					acceptMsg.setOntology(timeOntology.getName());
-					// Prepare the content.
-
+					//prepare the content.
 					Slot slot = new Slot();
 					slot.setSlotOwner(props.get(i).getSlotOwner());
 					slot.setSlot(props.get(i).getProp());
 					try {
-						// Let JADE convert from Java objects to string
+						//let JADE convert from Java objects to string
 						getContentManager().fillContent(acceptMsg, slot);
 						send(acceptMsg);
 					} catch (CodecException | OntologyException ce) {
@@ -193,10 +194,9 @@ public class TimetableAgent extends Agent{
 		}
 		props.removeAll(props);
 	}
-
+	//request swap proposal class
 	private class recProposal extends CyclicBehaviour{
 		public void action() {
-			// TODO Auto-generated method stub
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
 			ACLMessage msg = myAgent.receive(mt);
 			if(msg != null) {
@@ -217,34 +217,31 @@ public class TimetableAgent extends Agent{
 			}
 		}
 	}
-
+	//receive timetable request class
 	private class recTimetableRequest extends CyclicBehaviour{
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
 			ACLMessage msg = myAgent.receive(mt);
-
 			if(msg != null) {
 				if(msg.getContent().equals("reqTimetable")) {
 					ACLMessage timetableReply = new ACLMessage(ACLMessage.AGREE);
 					timetableReply.setLanguage(codec.getName());
 					timetableReply.setOntology(timeOntology.getName());
 					timetableReply.addReceiver(msg.getSender());
-
 					try {
-						// Let JADE convert from Java objects to string
+						//let JADE convert from Java objects to string
 						Board board = new Board();
 						board.setBoard(TimetableAgent.this.board.getBoard());
 						getContentManager().fillContent(timetableReply, board);
 						send(timetableReply);
 					} catch (CodecException | OntologyException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
 			}
 		}
 	}
-
+	//add student to the timetable class
 	private class addStudents extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
@@ -272,7 +269,7 @@ public class TimetableAgent extends Agent{
 			}
 		}
 	}
-	
+	//class that assigns timetable to the students
 	private static class assignedTimetable extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
@@ -282,7 +279,7 @@ public class TimetableAgent extends Agent{
 			}
 		}
 	}
-
+	// shutdown class
 	private class shutdown extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);

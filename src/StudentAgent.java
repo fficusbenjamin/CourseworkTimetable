@@ -22,7 +22,7 @@ import time_ontology.*;
 ///-------------------------------------------------------------------
 ///   Class:		Student Agent (Class)
 ///   Description:	Student agent class is the class that holds the
-///					the student agent and all the methods needed to
+///					the student agent and all the classes needed to
 ///					perform all the communication with the timetable
 ///					agent.
 ///
@@ -30,16 +30,14 @@ import time_ontology.*;
 ///-------------------------------------------------------------------
 
 public class StudentAgent extends Agent {
+	//initialise variables
 	private final Codec codec = new SLCodec();
 	private final Ontology timeOntology = TimeOntology.getInstance();
-
 	List<Tutorial> timetable = new ArrayList<>();
-	
 	List<Pref> preferences = new ArrayList<>();
-
 	private int availability = 2;
-	//private int scale;
 
+	//setup
 	protected void setup() {
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
@@ -60,11 +58,12 @@ public class StudentAgent extends Agent {
 		} catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
+		//adds the ticker behaviour that performs the new tick method
 		addBehaviour(new TickerBehaviour(this, 6000) {
 			protected void onTick() {
-
 			}
 		});
+		//all the remnant behaviours
 		addBehaviour(new reqTimetableAdd());
 		addBehaviour(new recTimetable());
 		addBehaviour(new timetableListener());
@@ -72,19 +71,18 @@ public class StudentAgent extends Agent {
 		addBehaviour(new swapSlot());
 	}
 
-	//request timetable addition
+	//request timetable addition class
 	private static class reqTimetableAdd extends Behaviour {
 		public void action() {
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription desc = new ServiceDescription();
-			//cfp is the content inside the message
 			ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 			//Gives the message a type for the timetable agent to interpret
 			desc.setType("Timetable Agent");
 			template.addServices(desc);
 			try {
 				DFAgentDescription[] result = DFService.search(myAgent, template);
-				//if the result exists i.e. the student exists
+				//if not zero the student exists
 				if (result.length > 0) {
 					cfp.addReceiver(result[0].getName());
 				}
@@ -94,16 +92,15 @@ public class StudentAgent extends Agent {
 			//set the content of the message to addition request which calls the method inside the timetable agent to add students
 			cfp.setContent("addition request");
 			cfp.setConversationId("timetable setup");
-			cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+			cfp.setReplyWith("cfp" + System.currentTimeMillis()); //unique value
 			myAgent.send(cfp);
 		}
-
 		public boolean done() {
 			return true;
 		}
 	}
 
-	// Put agent clean-up operations here
+	//clean-up operations
 	protected void takeDown() {
 		// Deregister from the yellow pages
 		try {
@@ -112,7 +109,7 @@ public class StudentAgent extends Agent {
 			fe.printStackTrace();
 		}
 	}
-	//receive timetable
+	//receive timetable class
 	private class recTimetable extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
@@ -127,13 +124,10 @@ public class StudentAgent extends Agent {
 						AID slotOwner = slot.getSlotOwner();
 						System.out.println("Module: " + tut.getModuleID() + " " + tut.getType() + tut.getDay() + " " + tut.getModuleName() + " " + "\nStudent:" + slotOwner);
 						timetable.add(tut);
-
 						DFAgentDescription template = new DFAgentDescription();
 						ServiceDescription desc = new ServiceDescription();
-
 						//confirmation timetable received
 						ACLMessage conformMsg = new ACLMessage(ACLMessage.CONFIRM);
-
 						desc.setType("Timetable Agent");
 						template.addServices(desc);
 						try {
@@ -141,22 +135,17 @@ public class StudentAgent extends Agent {
 							if (result.length > 0) {
 								conformMsg.addReceiver(result[0].getName());
 								System.out.println("Message received from: " + result[0].getName());
-
 								conformMsg.setConversationId("timetable setup");
-
-								// Let JADE convert from Java objects to string
 								conformMsg.setContent("confirm");
 								myAgent.send(conformMsg);
 							}
 						} catch (FIPAException fe) {
 							fe.printStackTrace();
 						}
-
+						//creates a new utility tut
 						int utility = utility(tut);
 						availability = availability + utility;
-						//System.out.println("Availability is: " + availability);
-
-						// Test with advertising neutral
+						// if less or equal to a neutral availability
 						if (utility <= 2) {
 							ACLMessage swapMsg = new ACLMessage(ACLMessage.CFP);
 							desc.setType("Timetable Agent");
@@ -165,14 +154,10 @@ public class StudentAgent extends Agent {
 								DFAgentDescription[] dfdAvail = DFService.search(myAgent, template);
 								if (dfdAvail.length > 0) {
 									swapMsg.addReceiver(dfdAvail[0].getName());
-									//System.out.println("Availability " + dfdAvail[0].getName());
-
 									swapMsg.setLanguage(codec.getName());
 									swapMsg.setOntology(timeOntology.getName());
 									swapMsg.setConversationId("timetable setup");
-
 									try {
-										// Let JADE convert from Java objects to string
 										System.out.println("Message sent to the timetable agent");
 										getContentManager().fillContent(swapMsg, slot);
 										send(swapMsg);
@@ -183,18 +168,16 @@ public class StudentAgent extends Agent {
 							} catch (FIPAException fe) {
 								fe.printStackTrace();
 							}
-
 						}
 					}
 				}
-
 				catch (CodecException | OntologyException ce) {
 					ce.printStackTrace();
 				}
 			}
 		}
 	}
-	//method that handles messages
+	//class that handles messages
 	private class timetableListener extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
@@ -204,7 +187,6 @@ public class StudentAgent extends Agent {
 					myAgent.doDelete();
 				} else if (msg.getContent().equals("newTick")) {
 					boolean reqSwap = false;
-
 					for (Tutorial tutorial : timetable) {
 						int utility = utility(tutorial);
 						availability = 2;
@@ -213,7 +195,6 @@ public class StudentAgent extends Agent {
 							reqSwap = true;
 						}
 					}
-					
 					if(reqSwap) {
 						DFAgentDescription template = new DFAgentDescription();
 						ServiceDescription desc = new ServiceDescription();
@@ -237,7 +218,7 @@ public class StudentAgent extends Agent {
 			}
 		}
 	}
-
+	// swap required class
 	private class swapRequired extends CyclicBehaviour
 	{
 		public void action() {
@@ -267,11 +248,9 @@ public class StudentAgent extends Agent {
 							prop.setSlotOwner(board.getBoard().get(availSlot).getStudentOwner());
 							prop.setProp(board.getBoard().get(availSlot));
 							prop.setSlotRecipient(myAgent.getAID());
-							
 							ACLMessage swapAttempt = new ACLMessage(ACLMessage.PROPOSE);
 							DFAgentDescription template = new DFAgentDescription();
 							ServiceDescription desc = new ServiceDescription();
-							
 							desc.setType("Timetable Agent");
 							template.addServices(desc);
 							try {
@@ -284,9 +263,7 @@ public class StudentAgent extends Agent {
 							}
 							swapAttempt.setLanguage(codec.getName());
 							swapAttempt.setOntology(timeOntology.getName());
-							
 							try {
-								// Let JADE convert from Java objects to string
 								System.out.println("Swap requested");
 								getContentManager().fillContent(swapAttempt, prop);
 								send(swapAttempt);
@@ -303,7 +280,7 @@ public class StudentAgent extends Agent {
 			}
 		}
 	}
-
+	//swap slot class
 	private class swapSlot extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
@@ -325,14 +302,13 @@ public class StudentAgent extends Agent {
 						}
 					}
 				} catch (CodecException | OntologyException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
 			}
 		}
 
 	}
+	//utility function
 	private int utility(Tutorial tutorial) {
 		int scale = 2;
 		for (Pref preference : preferences) {
